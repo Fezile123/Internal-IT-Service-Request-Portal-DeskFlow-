@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  employee
+  admin
+}
+
+enum Priority {
+  Low
+  Medium
+  High
+}
+
+model User {
+  id       String @id @default(uuid())
+  name     String
+  email    String @unique
+  password String
+  role     Role   @default(employee)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tickets Ticket[]
+
+  @@index([email])
+  @@map("users")
+}
+
+model Ticket {
+  id           String  @id @default(uuid())
+  ticketNumber String? @unique @map("ticket_number")
+
+  title       String
+  description String
+
+  priority Priority @default(Medium)
+  status   String   @default("Open")
+  category String   @default("Other")
+
+  assignedTo String? @map("assigned_to")
+  adminNotes String? @map("admin_notes")
+
+  aiSummary              String?   @map("ai_summary")
+  aiTroubleshootingSteps String[]  @default([]) @map("ai_troubleshooting_steps")
+  aiSuggestedResolution  String?   @map("ai_suggested_resolution")
+  aiRecommendedPriority  Priority? @map("ai_recommended_priority")
+  aiAnalyzedAt           DateTime? @map("ai_analyzed_at")
+
+  createdById String @map("created_by_id")
+
+  createdBy User @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([createdById, createdAt])
+  @@index([status, priority])
+  @@map("tickets")
+}
