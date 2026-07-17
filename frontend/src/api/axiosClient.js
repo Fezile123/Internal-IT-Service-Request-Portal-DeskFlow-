@@ -1,28 +1,71 @@
 import axios from 'axios';
 
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL:
+    import.meta.env.VITE_API_URL ||
+    'http://localhost:5000/api',
+
   timeout: 15000,
+
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
-axiosClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('deskflow_token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+/**
+ * Attach JWT token to every request
+ */
+axiosClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem(
+      'deskflow_token'
+    );
 
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+/**
+ * Global response handling
+ */
 axiosClient.interceptors.response.use(
-  (res) => res.data,
+  (response) => response.data,
+
   (error) => {
-    const message = error.response?.data?.message || error.message || 'Something went wrong';
+    const message =
+      error.response?.data?.message ||
+      error.message ||
+      'Something went wrong';
+
+    /**
+     * Auto logout on unauthorized
+     */
     if (error.response?.status === 401) {
-      localStorage.removeItem('deskflow_token');
-      localStorage.removeItem('deskflow_user');
-      if (!window.location.pathname.includes('/login')) {
+      localStorage.removeItem(
+        'deskflow_token'
+      );
+
+      localStorage.removeItem(
+        'deskflow_user'
+      );
+
+      if (
+        !window.location.pathname.includes(
+          '/login'
+        )
+      ) {
         window.location.href = '/login';
       }
     }
-    return Promise.reject(new Error(message));
+
+    return Promise.reject(
+      new Error(message)
+    );
   }
 );
 

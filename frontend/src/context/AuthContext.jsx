@@ -10,18 +10,36 @@ import {
   registerRequest,
 } from '../api/authApi';
 
-export const AuthContext = createContext(null);
+export const AuthContext =
+  createContext(null);
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const stored = localStorage.getItem('deskflow_user');
-    return stored ? JSON.parse(stored) : null;
-  });
+export function AuthProvider({
+  children,
+}) {
+  const [user, setUser] =
+    useState(() => {
+      const stored =
+        localStorage.getItem(
+          'deskflow_user'
+        );
 
-  const [loading, setLoading] = useState(false);
+      return stored
+        ? JSON.parse(stored)
+        : null;
+    });
 
-  const saveSession = (token, user) => {
-    localStorage.setItem('deskflow_token', token);
+  const [loading, setLoading] =
+    useState(false);
+
+  const saveSession = (
+    token,
+    user
+  ) => {
+    localStorage.setItem(
+      'deskflow_token',
+      token
+    );
+
     localStorage.setItem(
       'deskflow_user',
       JSON.stringify(user)
@@ -30,69 +48,41 @@ export function AuthProvider({ children }) {
     setUser(user);
   };
 
-  const login = useCallback(async (email, password) => {
-    setLoading(true);
-
-    try {
-      const res = await loginRequest(
-        email,
-        password
-      );
-
-      console.log(
-        'LOGIN RESPONSE:',
-        res.data
-      );
-
-      const data =
-        res.data.data || res.data;
-
-      const token = data.token;
-      const user = data.user;
-
-      if (!token || !user) {
-        throw new Error(
-          'Invalid login response from server'
-        );
-      }
-
-      saveSession(token, user);
-
-      return user;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const register = useCallback(
-    async (name, email, password) => {
+  const login = useCallback(
+    async (email, password) => {
       setLoading(true);
 
       try {
-        const res = await registerRequest(
-          name,
-          email,
-          password
-        );
+        const response =
+          await loginRequest(
+            email,
+            password
+          );
 
         console.log(
-          'REGISTER RESPONSE:',
-          res.data
+          'LOGIN RESPONSE:',
+          response
         );
 
-        const data =
-          res.data.data || res.data;
+        const token =
+          response.data?.token;
 
-        const token = data.token;
-        const user = data.user;
+        const user =
+          response.data?.user;
 
-        if (!token || !user) {
+        if (
+          !token ||
+          !user
+        ) {
           throw new Error(
-            'Invalid registration response from server'
+            'Invalid login response from server'
           );
         }
 
-        saveSession(token, user);
+        saveSession(
+          token,
+          user
+        );
 
         return user;
       } finally {
@@ -102,16 +92,68 @@ export function AuthProvider({ children }) {
     []
   );
 
-  const logout = useCallback(() => {
-    localStorage.removeItem(
-      'deskflow_token'
-    );
-    localStorage.removeItem(
-      'deskflow_user'
+  const register =
+    useCallback(
+      async (
+        name,
+        email,
+        password
+      ) => {
+        setLoading(true);
+
+        try {
+          const response =
+            await registerRequest(
+              name,
+              email,
+              password
+            );
+
+          console.log(
+            'REGISTER RESPONSE:',
+            response
+          );
+
+          const token =
+            response.data?.token;
+
+          const user =
+            response.data?.user;
+
+          if (
+            !token ||
+            !user
+          ) {
+            throw new Error(
+              'Invalid registration response from server'
+            );
+          }
+
+          saveSession(
+            token,
+            user
+          );
+
+          return user;
+        } finally {
+          setLoading(false);
+        }
+      },
+      []
     );
 
-    setUser(null);
-  }, []);
+  const logout =
+    useCallback(() => {
+      localStorage.removeItem(
+        'deskflow_token'
+      );
+
+      localStorage.removeItem(
+        'deskflow_user'
+      );
+
+      setUser(null);
+    }, []);
 
   const value = useMemo(
     () => ({
@@ -121,7 +163,8 @@ export function AuthProvider({ children }) {
       logout,
       loading,
       isAdmin:
-        user?.role === 'admin',
+        user?.role ===
+        'admin',
     }),
     [
       user,
@@ -133,7 +176,9 @@ export function AuthProvider({ children }) {
   );
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider
+      value={value}
+    >
       {children}
     </AuthContext.Provider>
   );
