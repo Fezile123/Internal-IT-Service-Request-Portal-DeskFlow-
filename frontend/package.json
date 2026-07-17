@@ -1,5 +1,6 @@
 {
   "name": "deskflow-frontend",
+  "private": true,
   "version": "1.0.0",
   "type": "module",
   "scripts": {
@@ -17,10 +18,11 @@
     "recharts": "^3.9.2"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.1",
+    "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.4.19",
+    "esbuild": "^0.28.1",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.4",
-    "vite": "^8.1.4"
+    "vite": "^7.3.6"
   }
 }
