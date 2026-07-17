@@ -6,7 +6,9 @@ const xss = require('xss-clean');
 const swaggerUi = require('swagger-ui-express');
 
 const swaggerSpec = require('./config/swagger');
+
 const { apiLimiter } = require('./middleware/rateLimiter');
+
 const {
   notFound,
   errorHandler,
@@ -18,28 +20,28 @@ const aiRoutes = require('./routes/aiRoutes');
 
 const app = express();
 
-/* ==========================================
+/* ==================================================
    SECURITY
-========================================== */
+================================================== */
 
 app.use(helmet());
 
-/* ==========================================
+/* ==================================================
    CORS
-========================================== */
+================================================== */
 
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:5174',
-
   process.env.CLIENT_URL,
-];
+].filter(Boolean);
 
 app.use(
   cors({
-    origin: function (origin, callback) {
+    origin: (origin, callback) => {
+      // Allow Postman, Render health checks, server-to-server requests
       if (!origin) {
         return callback(null, true);
       }
@@ -48,9 +50,13 @@ app.use(
         return callback(null, true);
       }
 
+      console.log(
+        `❌ CORS blocked origin: ${origin}`
+      );
+
       return callback(
         new Error(
-          `CORS blocked for origin: ${origin}`
+          `CORS policy does not allow access from ${origin}`
         )
       );
     },
@@ -58,9 +64,9 @@ app.use(
   })
 );
 
-/* ==========================================
-   BODY PARSER
-========================================== */
+/* ==================================================
+   BODY PARSERS
+================================================== */
 
 app.use(
   express.json({
@@ -75,15 +81,15 @@ app.use(
   })
 );
 
-/* ==========================================
+/* ==================================================
    XSS PROTECTION
-========================================== */
+================================================== */
 
 app.use(xss());
 
-/* ==========================================
+/* ==================================================
    LOGGING
-========================================== */
+================================================== */
 
 app.use(
   morgan(
@@ -93,15 +99,15 @@ app.use(
   )
 );
 
-/* ==========================================
-   RATE LIMITER
-========================================== */
+/* ==================================================
+   RATE LIMITING
+================================================== */
 
 app.use('/api', apiLimiter);
 
-/* ==========================================
-   SWAGGER DOCS
-========================================== */
+/* ==================================================
+   SWAGGER DOCUMENTATION
+================================================== */
 
 app.use(
   '/api-docs',
@@ -109,9 +115,9 @@ app.use(
   swaggerUi.setup(swaggerSpec)
 );
 
-/* ==========================================
+/* ==================================================
    ROOT ROUTE
-========================================== */
+================================================== */
 
 app.get('/', (req, res) => {
   res.status(200).json({
@@ -120,35 +126,43 @@ app.get('/', (req, res) => {
     version: '2.0.0',
     database: 'Neon PostgreSQL',
     status: 'Running',
+    environment:
+      process.env.NODE_ENV || 'development',
   });
 });
 
-/* ==========================================
+/* ==================================================
    HEALTH CHECK
-========================================== */
+================================================== */
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     success: true,
     message: 'DeskFlow API is healthy',
-    environment: process.env.NODE_ENV,
-    timestamp: new Date(),
+    timestamp: new Date().toISOString(),
+    environment:
+      process.env.NODE_ENV || 'development',
   });
 });
 
-/* ==========================================
+/* ==================================================
    API ROUTES
-========================================== */
+================================================== */
 
 app.use('/api/auth', authRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/ai', aiRoutes);
 
-/* ==========================================
-   ERROR HANDLERS
-========================================== */
+/* ==================================================
+   404 HANDLER
+================================================== */
 
 app.use(notFound);
+
+/* ==================================================
+   GLOBAL ERROR HANDLER
+================================================== */
+
 app.use(errorHandler);
 
 module.exports = app;
