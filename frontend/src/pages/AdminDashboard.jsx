@@ -24,11 +24,11 @@ import {
   TicketCheck,
   Clock,
   AlertCircle,
+  LayoutDashboard,
 } from 'lucide-react';
 
 export default function AdminDashboard() {
-  const [tab, setTab] =
-    useState('tickets');
+  const [tab, setTab] = useState('tickets');
 
   const [tickets, setTickets] =
     useState([]);
@@ -118,6 +118,8 @@ export default function AdminDashboard() {
 
   const stats = useMemo(
     () => ({
+      total: tickets.length,
+
       open: tickets.filter(
         (ticket) =>
           ticket.status ===
@@ -146,7 +148,7 @@ export default function AdminDashboard() {
       ? 'AI Assistant'
       : tab === 'analytics'
       ? 'Analytics Dashboard'
-      : 'All Tickets';
+      : 'IT Service Desk';
 
   const pageSubtitle =
     tab === 'ai'
@@ -162,10 +164,17 @@ export default function AdminDashboard() {
       title={pageTitle}
       subtitle={pageSubtitle}
     >
-
       {tab === 'tickets' && (
         <>
-          <div className="grid grid-cols-3 gap-4 mb-6">
+          {/* KPI SECTION */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+
+            <StatCard
+              icon={LayoutDashboard}
+              label="Total Tickets"
+              value={stats.total}
+              color="text-purple-400"
+            />
 
             <StatCard
               icon={AlertCircle}
@@ -177,102 +186,100 @@ export default function AdminDashboard() {
             <StatCard
               icon={Clock}
               label="In Progress"
-              value={
-                stats.inProgress
-              }
+              value={stats.inProgress}
               color="text-amber-400"
             />
 
             <StatCard
               icon={TicketCheck}
               label="Resolved"
-              value={
-                stats.resolved
-              }
+              value={stats.resolved}
               color="text-emerald-400"
             />
 
           </div>
 
-          <div className="flex gap-2 mb-4">
+          {/* FILTER BAR */}
+          <div className="card p-4 mb-6">
 
-            <div className="relative flex-1">
+            <div className="flex flex-col lg:flex-row gap-3">
 
-              <Search
-                size={15}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
-              />
+              <div className="relative flex-1">
 
-              <input
-                className="input-field pl-9"
-                placeholder="Search tickets..."
-                value={search}
+                <Search
+                  size={16}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+                />
+
+                <input
+                  className="input-field pl-10"
+                  placeholder="Search tickets..."
+                  value={search}
+                  onChange={(e) =>
+                    setSearch(
+                      e.target.value
+                    )
+                  }
+                />
+
+              </div>
+
+              <select
+                className="input-field lg:w-48"
+                value={statusFilter}
                 onChange={(e) =>
-                  setSearch(
+                  setStatusFilter(
                     e.target.value
                   )
                 }
-              />
+              >
+                <option value="">
+                  All Statuses
+                </option>
+                <option>Open</option>
+                <option>
+                  In Progress
+                </option>
+                <option>
+                  Resolved
+                </option>
+              </select>
+
+              <select
+                className="input-field lg:w-48"
+                value={priorityFilter}
+                onChange={(e) =>
+                  setPriorityFilter(
+                    e.target.value
+                  )
+                }
+              >
+                <option value="">
+                  All Priorities
+                </option>
+                <option>Low</option>
+                <option>Medium</option>
+                <option>High</option>
+              </select>
 
             </div>
 
-            <select
-              className="input-field w-40"
-              value={statusFilter}
-              onChange={(e) =>
-                setStatusFilter(
-                  e.target.value
-                )
-              }
-            >
-              <option value="">
-                All Statuses
-              </option>
+          </div>
 
-              <option>
-                Open
-              </option>
+          {/* RESULTS */}
+          <div className="flex justify-between items-center mb-4">
 
-              <option>
-                In Progress
-              </option>
+            <h3 className="text-lg font-semibold">
+              Ticket Queue
+            </h3>
 
-              <option>
-                Resolved
-              </option>
-
-            </select>
-
-            <select
-              className="input-field w-40"
-              value={priorityFilter}
-              onChange={(e) =>
-                setPriorityFilter(
-                  e.target.value
-                )
-              }
-            >
-              <option value="">
-                All Priorities
-              </option>
-
-              <option>
-                Low
-              </option>
-
-              <option>
-                Medium
-              </option>
-
-              <option>
-                High
-              </option>
-
-            </select>
+            <span className="text-sm text-gray-400">
+              {tickets.length} tickets found
+            </span>
 
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
 
             {loading && (
               <SkeletonLoader rows={4} />
@@ -318,7 +325,6 @@ export default function AdminDashboard() {
       {tab === 'ai' && (
         <AIAssistantPanel />
       )}
-
     </DashboardLayout>
   );
 }
@@ -330,22 +336,26 @@ function StatCard({
   color,
 }) {
   return (
-    <div className="card p-4 flex items-center gap-3">
+    <div className="card p-5 hover:border-brand-500/30 transition-all">
 
-      <div
-        className={`p-2 rounded-lg bg-surface-border ${color}`}
-      >
-        <Icon size={18} />
-      </div>
+      <div className="flex items-center justify-between">
 
-      <div>
-        <p className="text-xl font-semibold">
-          {value}
-        </p>
+        <div>
+          <p className="text-gray-400 text-sm">
+            {label}
+          </p>
 
-        <p className="text-xs text-gray-500">
-          {label}
-        </p>
+          <h3 className="text-3xl font-bold mt-1">
+            {value}
+          </h3>
+        </div>
+
+        <div
+          className={`p-3 rounded-xl bg-surface-border ${color}`}
+        >
+          <Icon size={22} />
+        </div>
+
       </div>
 
     </div>

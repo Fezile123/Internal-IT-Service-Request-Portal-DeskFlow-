@@ -7,7 +7,10 @@ const swaggerUi = require('swagger-ui-express');
 
 const swaggerSpec = require('./config/swagger');
 const { apiLimiter } = require('./middleware/rateLimiter');
-const { notFound, errorHandler } = require('./middleware/errorHandler');
+const {
+  notFound,
+  errorHandler,
+} = require('./middleware/errorHandler');
 
 const authRoutes = require('./routes/authRoutes');
 const ticketRoutes = require('./routes/ticketRoutes');
@@ -15,37 +18,73 @@ const aiRoutes = require('./routes/aiRoutes');
 
 const app = express();
 
-/**
- * Security Middleware
- */
+/* ==========================================
+   SECURITY
+========================================== */
+
 app.use(helmet());
 
-/**
- * CORS Configuration
- * Allows Vite frontend on both common dev ports
- */
+/* ==========================================
+   CORS
+========================================== */
+
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+
+  process.env.CLIENT_URL,
+];
+
 app.use(
   cors({
-    origin: [
-      'http://localhost:5173',
-      'http://localhost:5174',
-      'http://127.0.0.1:5173',
-      'http://127.0.0.1:5174',
-    ],
+    origin: function (origin, callback) {
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(
+        new Error(
+          `CORS blocked for origin: ${origin}`
+        )
+      );
+    },
     credentials: true,
   })
 );
 
-app.use(express.json({ limit: '10kb' }));
+/* ==========================================
+   BODY PARSER
+========================================== */
 
-/**
- * XSS Protection
- */
+app.use(
+  express.json({
+    limit: '10kb',
+  })
+);
+
+app.use(
+  express.urlencoded({
+    extended: true,
+    limit: '10kb',
+  })
+);
+
+/* ==========================================
+   XSS PROTECTION
+========================================== */
+
 app.use(xss());
 
-/**
- * Logging
- */
+/* ==========================================
+   LOGGING
+========================================== */
+
 app.use(
   morgan(
     process.env.NODE_ENV === 'production'
@@ -54,45 +93,62 @@ app.use(
   )
 );
 
-/**
- * Rate Limiting
- */
+/* ==========================================
+   RATE LIMITER
+========================================== */
+
 app.use('/api', apiLimiter);
 
-/**
- * Swagger Documentation
- */
+/* ==========================================
+   SWAGGER DOCS
+========================================== */
+
 app.use(
   '/api-docs',
   swaggerUi.serve,
   swaggerUi.setup(swaggerSpec)
 );
 
-/**
- * Health Check
- */
-app.get('/api/health', (req, res) => {
+/* ==========================================
+   ROOT ROUTE
+========================================== */
+
+app.get('/', (req, res) => {
   res.status(200).json({
     success: true,
-    message: 'DeskFlow API is running',
+    name: 'DeskFlow API',
+    version: '2.0.0',
+    database: 'Neon PostgreSQL',
+    status: 'Running',
   });
 });
 
-/**
- * Routes
- */
+/* ==========================================
+   HEALTH CHECK
+========================================== */
+
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'DeskFlow API is healthy',
+    environment: process.env.NODE_ENV,
+    timestamp: new Date(),
+  });
+});
+
+/* ==========================================
+   API ROUTES
+========================================== */
+
 app.use('/api/auth', authRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/ai', aiRoutes);
 
-/**
- * 404 Handler
- */
-app.use(notFound);
+/* ==========================================
+   ERROR HANDLERS
+========================================== */
 
-/**
- * Global Error Handler
- */
+app.use(notFound);
 app.use(errorHandler);
 
 module.exports = app;

@@ -1,7 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { LifeBuoy, Loader2 } from 'lucide-react';
+
+import {
+  LifeBuoy,
+  Loader2,
+  UserPlus,
+} from 'lucide-react';
+
 import { useAuth } from '../hooks/useAuth';
 
 export default function RegisterPage() {
@@ -32,116 +38,122 @@ export default function RegisterPage() {
       );
 
       toast.success(
-        `Welcome to DeskFlow, ${user.name}`
+        `Welcome ${user.name}`
       );
 
-      navigate('/employee');
+      navigate(
+        user.role === 'admin'
+          ? '/admin'
+          : '/employee'
+      );
     } catch (err) {
       toast.error(
         err.response?.data?.message ||
-          err.message ||
-          'Registration failed'
+          err.message
       );
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-surface px-4">
-      <div className="card w-full max-w-md p-8">
-        <div className="flex items-center justify-center gap-2 mb-6">
-          <LifeBuoy
-            className="text-brand-500"
-            size={30}
-          />
-          <h1 className="text-2xl font-bold">
-            DeskFlow
-          </h1>
-        </div>
+    <div className="min-h-screen bg-surface flex items-center justify-center px-4">
 
-        <p className="text-center text-sm text-gray-400 mb-6">
-          Create your DeskFlow account
-        </p>
+      <div className="w-full max-w-md">
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4"
-        >
-          <div>
-            <label className="block text-sm text-gray-400 mb-2">
-              Full Name
-            </label>
+        <div className="card p-8">
+
+          <div className="text-center mb-8">
+
+            <div className="w-16 h-16 rounded-2xl bg-brand-600/10 border border-brand-500/20 flex items-center justify-center mx-auto mb-4">
+              <LifeBuoy
+                size={34}
+                className="text-brand-500"
+              />
+            </div>
+
+            <h1 className="text-3xl font-bold">
+              Create Account
+            </h1>
+
+            <p className="text-gray-400 mt-2">
+              Join DeskFlow
+            </p>
+
+          </div>
+
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-4"
+          >
 
             <input
               type="text"
               name="name"
-              placeholder="John Doe"
+              placeholder="Full Name"
               className="input-field"
               value={form.name}
               onChange={handleChange}
               required
             />
-          </div>
-
-          <div>
-            <label className="block text-sm text-gray-400 mb-2">
-              Email Address
-            </label>
 
             <input
               type="email"
               name="email"
-              placeholder="john@company.com"
+              placeholder="Email Address"
               className="input-field"
               value={form.email}
               onChange={handleChange}
               required
             />
-          </div>
-
-          <div>
-            <label className="block text-sm text-gray-400 mb-2">
-              Password
-            </label>
 
             <input
               type="password"
               name="password"
-              placeholder="Create a password"
+              placeholder="Password"
               className="input-field"
               value={form.password}
               onChange={handleChange}
               required
             />
-          </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-primary w-full flex items-center justify-center gap-2"
-          >
-            {loading && (
-              <Loader2
-                size={16}
-                className="animate-spin"
-              />
-            )}
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-primary w-full flex items-center justify-center gap-2"
+            >
 
-            {loading
-              ? 'Creating Account...'
-              : 'Create Account'}
-          </button>
-        </form>
+              {loading ? (
+                <>
+                  <Loader2
+                    size={18}
+                    className="animate-spin"
+                  />
+                  Creating Account...
+                </>
+              ) : (
+                <>
+                  <UserPlus size={18} />
+                  Create Account
+                </>
+              )}
 
-        <p className="text-center text-sm text-gray-400 mt-6">
-          Already have an account?{' '}
-          <Link
-            to="/login"
-            className="text-brand-500 hover:underline"
-          >
-            Sign In
-          </Link>
-        </p>
+            </button>
+
+          </form>
+
+          <p className="text-center text-sm text-gray-400 mt-6">
+            Already have an account?{' '}
+            <Link
+              to="/login"
+              className="text-brand-500 hover:underline"
+            >
+              Sign In
+            </Link>
+          </p>
+
+        </div>
+
       </div>
+
     </div>
   );
 }

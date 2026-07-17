@@ -10,6 +10,14 @@ import {
   YAxis,
 } from 'recharts';
 
+import {
+  Ticket,
+  AlertTriangle,
+  Clock3,
+  CheckCircle2,
+  BarChart3,
+} from 'lucide-react';
+
 const COLORS = [
   '#3B82F6',
   '#F59E0B',
@@ -18,7 +26,9 @@ const COLORS = [
   '#EF4444',
 ];
 
-export default function AnalyticsPanel({ tickets }) {
+export default function AnalyticsPanel({
+  tickets,
+}) {
   const total = tickets.length;
 
   const open = tickets.filter(
@@ -67,81 +77,166 @@ export default function AnalyticsPanel({ tickets }) {
 
   const resolutionRate =
     total > 0
-      ? ((resolved / total) * 100).toFixed(1)
+      ? (
+          (resolved / total) *
+          100
+        ).toFixed(1)
       : 0;
 
-  const highPriorityOpen = tickets.filter(
-    (t) =>
-      t.priority === 'High' &&
-      t.status !== 'Resolved'
-  ).length;
+  const highPriorityOpen =
+    tickets.filter(
+      (t) =>
+        t.priority === 'High' &&
+        t.status !== 'Resolved'
+    ).length;
 
   const statusData = [
-    { name: 'Open', value: open },
-    { name: 'In Progress', value: inProgress },
-    { name: 'Resolved', value: resolved },
+    {
+      name: 'Open',
+      value: open,
+    },
+    {
+      name: 'In Progress',
+      value: inProgress,
+    },
+    {
+      name: 'Resolved',
+      value: resolved,
+    },
   ];
 
   const priorityData = [
-    { name: 'Low', value: low },
-    { name: 'Medium', value: medium },
-    { name: 'High', value: high },
+    {
+      name: 'Low',
+      value: low,
+    },
+    {
+      name: 'Medium',
+      value: medium,
+    },
+    {
+      name: 'High',
+      value: high,
+    },
   ];
 
   const categoryData = [
-    { name: 'Software', value: software },
-    { name: 'Hardware', value: hardware },
-    { name: 'Network', value: network },
-    { name: 'Account Access', value: accountAccess },
-    { name: 'Other', value: other },
+    {
+      name: 'Software',
+      value: software,
+    },
+    {
+      name: 'Hardware',
+      value: hardware,
+    },
+    {
+      name: 'Network',
+      value: network,
+    },
+    {
+      name: 'Account Access',
+      value: accountAccess,
+    },
+    {
+      name: 'Other',
+      value: other,
+    },
   ];
 
   return (
     <div className="space-y-6">
 
       {/* KPI CARDS */}
+
       <div className="grid md:grid-cols-5 gap-4">
-        <Metric title="Total Tickets" value={total} />
-        <Metric title="Open" value={open} />
-        <Metric title="In Progress" value={inProgress} />
-        <Metric title="Resolved" value={resolved} />
+
         <Metric
-          title="High Priority Open"
-          value={highPriorityOpen}
+          title="Total Tickets"
+          value={total}
+          icon={Ticket}
+          color="text-purple-400"
         />
+
+        <Metric
+          title="Open"
+          value={open}
+          icon={AlertTriangle}
+          color="text-blue-400"
+        />
+
+        <Metric
+          title="In Progress"
+          value={inProgress}
+          icon={Clock3}
+          color="text-amber-400"
+        />
+
+        <Metric
+          title="Resolved"
+          value={resolved}
+          icon={CheckCircle2}
+          color="text-emerald-400"
+        />
+
+        <Metric
+          title="Critical Open"
+          value={highPriorityOpen}
+          icon={BarChart3}
+          color="text-red-400"
+        />
+
       </div>
 
       {/* ALERT */}
+
       {highPriorityOpen > 0 && (
-        <div className="card p-4 border border-red-500">
+        <div className="card p-5 border border-red-500/40">
+
           <h3 className="font-semibold text-red-400">
-            Attention Required
+            Immediate Attention Required
           </h3>
 
           <p className="text-sm text-gray-400 mt-2">
-            There are {highPriorityOpen} unresolved
-            high-priority tickets that require
-            immediate attention.
+            There are {
+              highPriorityOpen
+            } unresolved high-priority
+            tickets requiring action.
           </p>
+
         </div>
       )}
 
       {/* RESOLUTION RATE */}
-      <div className="card p-5">
-        <h3 className="font-semibold mb-2">
-          Resolution Rate
-        </h3>
 
-        <p className="text-5xl font-bold text-emerald-400">
-          {resolutionRate}%
-        </p>
+      <div className="card p-6">
 
-        <p className="text-sm text-gray-500 mt-2">
-          Percentage of tickets resolved.
-        </p>
+        <div className="flex justify-between mb-3">
+
+          <h3 className="font-semibold">
+            Resolution Rate
+          </h3>
+
+          <span className="text-emerald-400 font-semibold">
+            {resolutionRate}%
+          </span>
+
+        </div>
+
+        <div className="w-full h-3 bg-surface-border rounded-full overflow-hidden">
+
+          <div
+            className="h-full bg-emerald-500"
+            style={{
+              width: `${resolutionRate}%`,
+            }}
+          />
+
+        </div>
+
       </div>
 
       {/* CHARTS */}
+
       <div className="grid lg:grid-cols-3 gap-6">
 
         <div className="card p-5">
@@ -149,19 +244,26 @@ export default function AnalyticsPanel({ tickets }) {
             Status Distribution
           </h3>
 
-          <ResponsiveContainer width="100%" height={250}>
+          <ResponsiveContainer
+            width="100%"
+            height={250}
+          >
             <PieChart>
               <Pie
                 data={statusData}
                 dataKey="value"
                 outerRadius={80}
               >
-                {statusData.map((entry, index) => (
-                  <Cell
-                    key={index}
-                    fill={COLORS[index]}
-                  />
-                ))}
+                {statusData.map(
+                  (entry, index) => (
+                    <Cell
+                      key={index}
+                      fill={
+                        COLORS[index]
+                      }
+                    />
+                  )
+                )}
               </Pie>
 
               <Tooltip />
@@ -174,8 +276,13 @@ export default function AnalyticsPanel({ tickets }) {
             Priority Breakdown
           </h3>
 
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={priorityData}>
+          <ResponsiveContainer
+            width="100%"
+            height={250}
+          >
+            <BarChart
+              data={priorityData}
+            >
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
@@ -189,8 +296,13 @@ export default function AnalyticsPanel({ tickets }) {
             Category Breakdown
           </h3>
 
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={categoryData}>
+          <ResponsiveContainer
+            width="100%"
+            height={250}
+          >
+            <BarChart
+              data={categoryData}
+            >
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
@@ -201,56 +313,39 @@ export default function AnalyticsPanel({ tickets }) {
 
       </div>
 
-      {/* RECENT TICKETS */}
-      <div className="card p-5">
-        <h3 className="font-semibold mb-4">
-          Latest Tickets
-        </h3>
-
-        <div className="space-y-3">
-          {tickets.slice(0, 8).map((ticket) => (
-            <div
-              key={ticket.id}
-              className="flex justify-between items-center border-b border-surface-border pb-2"
-            >
-              <div>
-                <p className="font-medium">
-                  {ticket.title}
-                </p>
-
-                <p className="text-xs text-gray-500">
-                  {ticket.category || 'Other'}
-                </p>
-              </div>
-
-              <div className="text-right">
-                <p className="text-sm">
-                  {ticket.status}
-                </p>
-
-                <p className="text-xs text-gray-500">
-                  {ticket.priority}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
     </div>
   );
 }
 
-function Metric({ title, value }) {
+function Metric({
+  title,
+  value,
+  icon: Icon,
+  color,
+}) {
   return (
     <div className="card p-5">
-      <p className="text-sm text-gray-500">
-        {title}
-      </p>
 
-      <p className="text-3xl font-bold mt-2">
-        {value}
-      </p>
+      <div className="flex justify-between items-center">
+
+        <div>
+          <p className="text-sm text-gray-500">
+            {title}
+          </p>
+
+          <p className="text-3xl font-bold mt-2">
+            {value}
+          </p>
+        </div>
+
+        <div
+          className={`p-3 rounded-xl bg-surface-border ${color}`}
+        >
+          <Icon size={20} />
+        </div>
+
+      </div>
+
     </div>
   );
 }

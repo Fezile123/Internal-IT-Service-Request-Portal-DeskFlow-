@@ -10,6 +10,9 @@ import {
   User,
   Ticket,
   Save,
+  CalendarDays,
+  UserCog,
+  StickyNote,
 } from 'lucide-react';
 
 export default function TicketCard({
@@ -28,52 +31,83 @@ export default function TicketCard({
     useState(ticket.adminNotes || '');
 
   return (
-    <div className="card p-5 hover:border-brand-500/40 transition-all duration-200">
+    <div className="card p-6 hover:border-brand-500/40 hover:shadow-lg transition-all duration-300">
 
       {/* HEADER */}
-      <div className="flex justify-between items-start gap-4">
+
+      <div className="flex flex-col lg:flex-row lg:justify-between gap-4">
 
         <div className="flex-1">
 
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-3">
+
             <Ticket
               size={16}
               className="text-brand-400"
             />
 
-            <span className="text-sm font-semibold text-brand-400">
+            <span className="text-xs uppercase tracking-wider font-semibold text-brand-400">
+              Ticket
+            </span>
+
+            <span className="text-xs text-gray-500">
               {ticket.ticketNumber ||
                 `#${ticket.id?.slice(0, 8)}`}
             </span>
+
           </div>
 
-          <h3 className="font-semibold text-lg text-white">
+          <h3 className="text-lg font-semibold text-white">
             {ticket.title}
           </h3>
 
-          <p className="text-sm text-gray-400 mt-2">
+          <p className="text-gray-400 mt-3 leading-relaxed">
             {ticket.description}
           </p>
 
         </div>
 
-        <div className="flex flex-col gap-2 items-end">
+        <div className="flex flex-col items-start lg:items-end gap-2">
+
           <StatusBadge status={status} />
-          <PriorityBadge priority={ticket.priority} />
+
+          <PriorityBadge
+            priority={ticket.priority}
+          />
+
         </div>
 
       </div>
 
-      {/* FOOTER */}
-      <div className="mt-4 pt-4 border-t border-surface-border">
+      {/* METADATA */}
 
-        <div className="flex flex-wrap gap-3 text-xs text-gray-500 mb-4">
+      <div className="mt-5 pt-5 border-t border-surface-border">
+
+        <div className="flex flex-wrap gap-3 text-xs text-gray-500">
 
           <span className="flex items-center gap-1">
             <Clock size={12} />
             {new Date(
               ticket.createdAt
             ).toLocaleDateString()}
+          </span>
+
+          <span className="flex items-center gap-1">
+            <CalendarDays size={12} />
+            {Math.max(
+              0,
+              Math.floor(
+                (Date.now() -
+                  new Date(
+                    ticket.createdAt
+                  )) /
+                  (1000 *
+                    60 *
+                    60 *
+                    24)
+              )
+            )}{' '}
+            days ago
           </span>
 
           {ticket.createdBy?.name && (
@@ -91,62 +125,98 @@ export default function TicketCard({
 
         </div>
 
-        {/* EMPLOYEE VIEW */}
-        {!isAdmin && (
-          <>
-            {ticket.assignedTo && (
-              <div className="mb-3 text-sm text-blue-400">
-                Assigned To: {ticket.assignedTo}
-              </div>
-            )}
+      </div>
 
-            {ticket.adminNotes && (
-              <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                <p className="text-xs font-semibold text-amber-400 mb-1">
+      {/* EMPLOYEE VIEW */}
+
+      {!isAdmin && (
+        <div className="mt-5 space-y-4">
+
+          {ticket.assignedTo && (
+            <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20">
+
+              <div className="flex items-center gap-2 text-blue-400 mb-1">
+
+                <UserCog size={15} />
+
+                <span className="font-medium">
+                  Assigned Technician
+                </span>
+
+              </div>
+
+              <p className="text-sm text-gray-300">
+                {ticket.assignedTo}
+              </p>
+
+            </div>
+          )}
+
+          {ticket.adminNotes && (
+            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
+
+              <div className="flex items-center gap-2 text-amber-400 mb-2">
+
+                <StickyNote size={15} />
+
+                <span className="font-medium">
                   Admin Notes
-                </p>
+                </span>
 
-                <p className="text-sm text-gray-300">
-                  {ticket.adminNotes}
-                </p>
               </div>
-            )}
-          </>
-        )}
 
-        {/* ADMIN VIEW */}
-        {isAdmin && (
-          <div className="space-y-4">
+              <p className="text-sm text-gray-300 leading-relaxed">
+                {ticket.adminNotes}
+              </p>
+
+            </div>
+          )}
+
+        </div>
+      )}
+
+      {/* ADMIN VIEW */}
+
+      {isAdmin && (
+        <div className="mt-6 pt-6 border-t border-surface-border space-y-5">
+
+          <div className="grid md:grid-cols-2 gap-4">
 
             <div>
-              <label className="text-xs text-gray-400 block mb-1">
-                Status
+
+              <label className="block text-xs text-gray-400 mb-2">
+                Ticket Status
               </label>
 
               <select
                 value={status}
                 onChange={(e) =>
-                  setStatus(e.target.value)
+                  setStatus(
+                    e.target.value
+                  )
                 }
                 className="input-field"
               >
-                <option value="Open">
+                <option>
                   Open
                 </option>
 
-                <option value="In Progress">
+                <option>
                   In Progress
                 </option>
 
-                <option value="Resolved">
+                <option>
                   Resolved
                 </option>
+
               </select>
+
             </div>
 
             <div>
-              <label className="text-xs text-gray-400 block mb-1">
-                Assigned To
+
+              <label className="block text-xs text-gray-400 mb-2">
+                Assigned Technician
               </label>
 
               <input
@@ -157,46 +227,50 @@ export default function TicketCard({
                     e.target.value
                   )
                 }
-                placeholder="IT Technician"
+                placeholder="John Smith"
                 className="input-field"
               />
+
             </div>
-
-            <div>
-              <label className="text-xs text-gray-400 block mb-1">
-                Admin Notes
-              </label>
-
-              <textarea
-                rows={3}
-                value={adminNotes}
-                onChange={(e) =>
-                  setAdminNotes(
-                    e.target.value
-                  )
-                }
-                className="input-field resize-none"
-              />
-            </div>
-
-            <button
-              onClick={() =>
-                onUpdate(ticket.id, {
-                  status,
-                  assignedTo,
-                  adminNotes,
-                })
-              }
-              className="btn-primary flex items-center gap-2"
-            >
-              <Save size={16} />
-              Save Changes
-            </button>
 
           </div>
-        )}
 
-      </div>
+          <div>
+
+            <label className="block text-xs text-gray-400 mb-2">
+              Resolution Notes
+            </label>
+
+            <textarea
+              rows={4}
+              value={adminNotes}
+              onChange={(e) =>
+                setAdminNotes(
+                  e.target.value
+                )
+              }
+              placeholder="Add troubleshooting notes or resolution details..."
+              className="input-field resize-none"
+            />
+
+          </div>
+
+          <button
+            onClick={() =>
+              onUpdate(ticket.id, {
+                status,
+                assignedTo,
+                adminNotes,
+              })
+            }
+            className="btn-primary flex items-center gap-2"
+          >
+            <Save size={16} />
+            Save Changes
+          </button>
+
+        </div>
+      )}
 
     </div>
   );

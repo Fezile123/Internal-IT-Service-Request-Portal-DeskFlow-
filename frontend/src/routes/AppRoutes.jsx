@@ -11,22 +11,48 @@ import EmployeeDashboard from '../pages/EmployeeDashboard';
 import AdminDashboard from '../pages/AdminDashboard';
 
 import ProtectedRoute from './ProtectedRoute';
-
 import { useAuth } from '../hooks/useAuth';
 
 export default function AppRoutes() {
   const { user } = useAuth();
 
+  const getHomeRoute = () => {
+    if (!user) return '/login';
+
+    return user.role === 'admin'
+      ? '/admin'
+      : '/employee';
+  };
+
   return (
     <Routes>
+
       <Route
         path="/login"
-        element={<LoginPage />}
+        element={
+          user ? (
+            <Navigate
+              to={getHomeRoute()}
+              replace
+            />
+          ) : (
+            <LoginPage />
+          )
+        }
       />
 
       <Route
         path="/register"
-        element={<RegisterPage />}
+        element={
+          user ? (
+            <Navigate
+              to={getHomeRoute()}
+              replace
+            />
+          ) : (
+            <RegisterPage />
+          )
+        }
       />
 
       <Route
@@ -55,13 +81,7 @@ export default function AppRoutes() {
         path="/"
         element={
           <Navigate
-            to={
-              user
-                ? user.role === 'admin'
-                  ? '/admin'
-                  : '/employee'
-                : '/login'
-            }
+            to={getHomeRoute()}
             replace
           />
         }
@@ -69,8 +89,14 @@ export default function AppRoutes() {
 
       <Route
         path="*"
-        element={<Navigate to="/" replace />}
+        element={
+          <Navigate
+            to={getHomeRoute()}
+            replace
+          />
+        }
       />
+
     </Routes>
   );
 }

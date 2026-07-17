@@ -1,26 +1,27 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+
 import {
   LifeBuoy,
   Loader2,
   Eye,
   EyeOff,
   Shield,
-  UserPlus
+  User,
+  Settings,
 } from 'lucide-react';
 
 import { useAuth } from '../hooks/useAuth.js';
 
 export default function LoginPage() {
-  const { login, register, loading } = useAuth();
+  const { login, loading } = useAuth();
   const navigate = useNavigate();
 
-  const [isRegister, setIsRegister] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] =
+    useState(false);
 
   const [form, setForm] = useState({
-    name: '',
     email: '',
     password: '',
   });
@@ -36,28 +37,14 @@ export default function LoginPage() {
     e.preventDefault();
 
     try {
-      let user;
+      const user = await login(
+        form.email,
+        form.password
+      );
 
-      if (isRegister) {
-        user = await register(
-          form.name,
-          form.email,
-          form.password
-        );
-
-        toast.success(
-          'Account created successfully'
-        );
-      } else {
-        user = await login(
-          form.email,
-          form.password
-        );
-
-        toast.success(
-          `Welcome back, ${user.name}`
-        );
-      }
+      toast.success(
+        `Welcome back, ${user.name}`
+      );
 
       navigate(
         user.role === 'admin'
@@ -67,85 +54,75 @@ export default function LoginPage() {
     } catch (err) {
       toast.error(
         err.response?.data?.message ||
-          err.message
+          err.message ||
+          'Login failed'
       );
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-surface px-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-surface flex items-center justify-center px-4 relative overflow-hidden">
 
-        <div className="card p-8">
+      <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-brand-600/10 blur-3xl rounded-full" />
+      <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-brand-500/10 blur-3xl rounded-full" />
+
+      <div className="w-full max-w-md relative z-10">
+
+        <div className="card p-8 shadow-2xl">
 
           <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
+
+            <div className="w-20 h-20 rounded-3xl bg-brand-600/10 border border-brand-500/20 flex items-center justify-center mx-auto mb-5">
               <LifeBuoy
-                size={44}
+                size={38}
                 className="text-brand-500"
               />
             </div>
 
-            <h1 className="text-3xl font-bold">
+            <h1 className="text-4xl font-bold">
               DeskFlow
             </h1>
 
-            <p className="text-gray-400 mt-2">
-              Enterprise IT Service Management
+            <p className="text-gray-400 mt-3">
+              AI-Powered IT Service Desk
             </p>
+
           </div>
 
-          <div className="flex mb-6 bg-surface-border rounded-lg p-1">
-            <button
-              onClick={() =>
-                setIsRegister(false)
-              }
-              className={`flex-1 py-2 rounded-md text-sm ${
-                !isRegister
-                  ? 'bg-brand-600 text-white'
-                  : 'text-gray-400'
-              }`}
-            >
-              Sign In
-            </button>
+          <div className="grid grid-cols-2 gap-3 mb-6">
 
-            <button
-              onClick={() =>
-                setIsRegister(true)
-              }
-              className={`flex-1 py-2 rounded-md text-sm ${
-                isRegister
-                  ? 'bg-brand-600 text-white'
-                  : 'text-gray-400'
-              }`}
-            >
-              Create Account
-            </button>
+            <div className="border border-surface-border rounded-xl p-4 text-center">
+              <User
+                size={22}
+                className="mx-auto mb-2 text-brand-400"
+              />
+              <h3 className="font-medium">
+                Employee
+              </h3>
+              <p className="text-xs text-gray-400 mt-1">
+                Submit & track requests
+              </p>
+            </div>
+
+            <div className="border border-surface-border rounded-xl p-4 text-center">
+              <Settings
+                size={22}
+                className="mx-auto mb-2 text-brand-400"
+              />
+              <h3 className="font-medium">
+                Admin
+              </h3>
+              <p className="text-xs text-gray-400 mt-1">
+                Manage tickets
+              </p>
+            </div>
+
           </div>
 
           <form
             onSubmit={handleSubmit}
             className="space-y-4"
           >
-
-            {isRegister && (
-              <div>
-                <label className="block text-sm mb-2 text-gray-400">
-                  Full Name
-                </label>
-
-                <input
-                  type="text"
-                  name="name"
-                  className="input-field"
-                  placeholder="John Smith"
-                  value={form.name}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            )}
-
             <div>
               <label className="block text-sm mb-2 text-gray-400">
                 Email Address
@@ -203,7 +180,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full flex items-center justify-center gap-2"
+              className="btn-primary w-full flex items-center justify-center gap-2 py-3"
             >
               {loading && (
                 <Loader2
@@ -212,21 +189,28 @@ export default function LoginPage() {
                 />
               )}
 
-              {isRegister ? (
-                <>
-                  <UserPlus size={18} />
-                  Create Account
-                </>
-              ) : (
-                <>
-                  <Shield size={18} />
-                  Sign In
-                </>
-              )}
+              <Shield size={18} />
+              Sign In
             </button>
+
+            <p className="text-center text-sm text-gray-400">
+              Don't have an account?{' '}
+              <Link
+                to="/register"
+                className="text-brand-500 hover:underline"
+              >
+                Create Account
+              </Link>
+            </p>
+
           </form>
 
         </div>
+
+        <p className="text-center text-xs text-gray-500 mt-5">
+          DeskFlow © 2026
+        </p>
+
       </div>
     </div>
   );
