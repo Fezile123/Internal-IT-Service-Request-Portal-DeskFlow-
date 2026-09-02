@@ -58,6 +58,7 @@ const getMe = asyncHandler(async (req, res) => {
 
 const getUsers = asyncHandler(async (req, res) => {
   const users = await prisma.user.findMany({
+    where: { role: 'admin' },
     select: {
       id: true,
       name: true,
