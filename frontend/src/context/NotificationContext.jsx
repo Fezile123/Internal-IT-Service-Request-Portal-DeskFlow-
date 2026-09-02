@@ -9,7 +9,8 @@ import React, {
 
 const NotificationContext = createContext(null);
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const RAW_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE = RAW_BASE.replace(/\/api$/, '');
 
 export function NotificationProvider({ children, user }) {
   const [notifications, setNotifications] = useState([]);
